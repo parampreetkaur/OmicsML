@@ -4,7 +4,7 @@ library(ParBayesianOptimization)
 library(pROC)
 h2o.init()
 
-data1 <- read.csv("data/uploaded.csv")
+data1 <- read.csv("data/uploaded2.csv")
 r<-nrow(data1)
 
 
@@ -71,3 +71,5 @@ dl1<-h2o.deeplearning(x=x, y=y,activation="RectifierWithDropout",training_frame 
 
 perf <- h2o.performance(dl1, newdata = test)
 print(perf)
+a<-h2o.auc(perf)
+print(a)
