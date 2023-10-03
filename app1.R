@@ -6,22 +6,21 @@ library(shinycssloaders)
 library(DT)
 library(reticulate)
 
-library(survival)
+library(survival)      
 library(survminer)
 library(dplyr)
-library(survcomp)
+library(survcomp) 
 
 source_python("naremove.py")
 source_python("kNN.py")
 source_python("anova.py")
-source_python("pso.py")
-source_python("fire.py")
-library(tidyverse)
+source_python("fireflyalgo.py")
+
 h2o.init()
 
 
 ui <-dashboardPage(skin="red",
-                   dashboardHeader(title="Omics Data Prediction"),
+                   dashboardHeader(title="OmicsML"),     
                    dashboardSidebar(
                      sidebarMenu(
                        
@@ -42,26 +41,22 @@ ui <-dashboardPage(skin="red",
                                             "text/comma-separated-values,text/plain",
                                             ".csv")), 
                        menuItem("Feature Selection",
-                                menuItem("ANOVA",tabName="ANOVA",icon=icon("tree"),selected=FALSE),              
-                                menuItem("GA",tabName="GA",icon=icon("tree")),        
-                                menuItem("Boruta",tabName="Boruta",icon=icon("tree")),         
-                                menuItem("PSO",tabName="PSO",icon=icon("tree")),       
+                                menuItem("ABC",tabName="ABC",icon=icon("tree"),selected=FALSE),  
+                                menuItem("ANOVA",tabName="ANOVA",icon=icon("tree")),              
                                 menuItem("Firefly",tabName="Firefly",icon=icon("tree"))
                        ),
                        
                        
-                       fileInput("file3", "3.Upload csv file for Disease Prediction",
+                       fileInput("file3", "3.Upload csv file for Prediction",              
                                  multiple = FALSE,
                                  accept = c("text/csv",
                                             "text/comma-separated-values,text/plain",
                                             ".csv")),
                        
                        menuItem("Models",
-                                menuItem("Deep Neural Network",tabName="DNN",icon=icon("tree"),selected=FALSE),
-                                menuItem("Random Forest",tabName="RF",icon=icon("tree")),
-                                menuItem("Stacked ensemble",tabName="Sense",icon=icon("tree")),
-                                menuItem("Naive Bayes",tabName="NB",icon=icon("tree"))
-                           
+                                menuItem("BSense",tabName="BSense",icon=icon("tree"),selected=FALSE),                       
+                                menuItem("BDNN",tabName="GDNN",icon=icon("tree"))                
+                     
                        ),
                        
                        fileInput("file5", "4.Upload csv file for Survival Analysis",
@@ -115,6 +110,21 @@ ui <-dashboardPage(skin="red",
                                  )) 
                        ), 
                        
+                       tabItem("ABC",
+                               fluidPage(
+                                 tabBox(
+                                   id = "tabset5",
+                                   height = "1000px",
+                                   width = 12,
+                                   tabPanel(
+                                     "Selected Features",
+                                     box(withSpinner(verbatimTextOutput("result5")), width = 12)
+                                   ),
+                                   tabPanel(
+                                     "Download Selected Features dataset",
+                                     box(downloadButton("downloadData3", "Download Dataset(.csv file)"), width = 12)
+                                   )
+                                 )) ),
                        
                        tabItem("ANOVA",
                                fluidPage(
@@ -134,53 +144,7 @@ ui <-dashboardPage(skin="red",
                                    )
                                  )) 
                        ), 
-                       tabItem("GA",
-                               fluidPage(
-                                 tabBox(
-                                   id = "tabset5",
-                                   height = "1000px",
-                                   width = 12,
-                                   tabPanel(
-                                     "Selected Features",
-                                     box(withSpinner(verbatimTextOutput("result4")), width = 12)
-                                   ),
-                                   tabPanel(
-                                     "Download Selected Features dataset",
-                                     box(downloadButton("downloadData2", "Download Dataset(.csv file)"), width = 12)
-                                     
-                                   )
-                                 )) ), 
-                        tabItem("Boruta",
-                                fluidPage(
-                                  tabBox(
-                                    id = "tabset5",
-                                    height = "1000px",
-                                    width = 12,
-                                    tabPanel(
-                                      "Selected Features",
-                                      box(withSpinner(verbatimTextOutput("result5")), width = 12)
-                                    ),
-                                    tabPanel(
-                                      "Download Selected Features dataset",
-                                      box(downloadButton("downloadData3", "Download Dataset(.csv file)"), width = 12)
-                                    )
-                                  )) ), 
-                       tabItem("PSO",
-                               fluidPage(
-                                 tabBox(
-                                   id = "tabset6",
-                                   height = "1000px",
-                                   width = 12,
-                                   tabPanel(
-                                     "Selected Features",
-                                     box(withSpinner(verbatimTextOutput("result6")), width = 12)
-                                   ),
-                                   tabPanel(
-                                     "Download Selected Features dataset",
-                                     box(downloadButton("downloadData4", "Download Dataset(.csv file)"), width = 12)
-                                     
-                                   )
-                                 )) ), 
+                        
                        tabItem("Firefly",
                                fluidPage(
                                  tabBox(
@@ -197,46 +161,9 @@ ui <-dashboardPage(skin="red",
                                      
                                    )
                                  )) ), 
-                       tabItem("DNN",
-                               fluidPage(
-                                 tabBox(
-                                   id = "tabset1",
-                                   height = "1000px",
-                                   width = 12,
-                                   tabPanel(
-                                     "Results",
-                                     box(withSpinner(verbatimTextOutput("result")), width = 12)
-                                     
-                                   ),
-                                   tabPanel(
-                                     "Plot",
-                                     box(withSpinner(plotOutput("plotr")), width = 12)
-                                     
-                                   )
-                                 )) 
-                       ),   
-                        tabItem("RF",
-                                fluidPage(
-                                  tabBox(
-                                    id = "tabset1",
-                                    height = "1000px",
-                                    width = 12,
-                                    tabPanel(
-                                      "Results",
-                                      box(withSpinner(verbatimTextOutput("resultrf")), width = 12)
-                                      
-                                    ),
-                                   tabPanel(
-                                      "Plot",
-                                      box(withSpinner(plotOutput("plotrrf")), width = 12)
-                                      
-                                    )
-                                  )) 
-                        ),  
+                                                        
                        
-                      
-                       
-                       tabItem("Sense",
+                       tabItem("BSense",
                                fluidPage(
                                  tabBox(
                                    id = "tabset2",
@@ -253,7 +180,7 @@ ui <-dashboardPage(skin="red",
                                    )
                                  )) ),
                        
-                       tabItem("NB",
+                       tabItem("GDNN",
                                fluidPage(
                                  tabBox(
                                    id = "tabset3",
@@ -300,40 +227,59 @@ ui <-dashboardPage(skin="red",
 server <-function(input,output){
   
   output$result9 = renderPrint({
-   
     req(input$file4)
-    data12 <- read.csv(input$file4$datapath, stringsAsFactors = TRUE)
-    write.csv(data12,'data/uploaded10.csv')
+    data12 <- read.csv(input$file4$datapath, stringsAsFactors = TRUE)             
+    write.csv(data12,'data/uploaded10.csv')        
     e<-preprocess1()
     return (e)
   })
   
-  data12 <- read.csv("data/missing_drop_new.csv")        
-  output$downloadData7 <- downloadHandler(                                                             
+  data12 <- read.csv("data/missing_drop_integratednew.csv")        
+  output$downloadData7 <- downloadHandler(                                                            
     filename = function() {                                                                            
       paste("data-", Sys.Date(), ".csv", sep="")                                                      
     },                                                                                                 
     content = function(file) {                                                                         
       write.csv(data12,file)                                                                           
     }                                                                                                  
-  )                                                                                                   
+  )                                                                                                    
   
   
   output$result8 = renderPrint({
-    
     req(input$file4)
     data7 <- read.csv(input$file4$datapath, stringsAsFactors = TRUE)
     write.csv(data7,'data/uploaded8.csv')
     d<-preprocess()
     return (d)
   })
-  data7 <- read.csv("data/missing_new.csv") 
+  data7 <- read.csv("data/missing_integratednew.csv") 
   output$downloadData6 <- downloadHandler(
     filename = function() {
       paste("data-", Sys.Date(), ".csv", sep="")
     },
     content = function(file) {
       write.csv(data7,file)
+    }
+  )
+  
+  
+  output$result5 = renderPrint({
+    req(input$file2)
+    data4 <- read.csv(input$file2$datapath, stringsAsFactors = TRUE)
+    write.csv(data4,'data/uploaded4.csv')
+    
+    source("ABC.R")
+    sink("output$result5")
+    return (boruta_signif)
+    
+  })
+  data2 <- read.csv("data/newdatasetabc.csv") 
+  output$downloadData3 <- downloadHandler(
+    filename = function() {
+      paste("data-", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(data2,file)
     }
   )
   
@@ -356,60 +302,6 @@ server <-function(input,output){
     }
   )
   
-  
-  output$result4 = renderPrint({
-    req(input$file2)
-    data6 <- read.csv(input$file2$datapath, stringsAsFactors = TRUE)
-    write.csv(data6,'data/uploaded7.csv')
-    
-    source("genetic.R")
-    sink("output$result4")
-    return (best_vars_ga)
-    
-  })
-  
- 
-  
-  
-  
-   output$result5 = renderPrint({
-     req(input$file2)
-     data4 <- read.csv(input$file2$datapath, stringsAsFactors = TRUE)
-     write.csv(data4,'data/uploaded4.csv')
-     
-     source("boruta.R")
-     sink("output$result5")
-     return (boruta_signif)
-    
-   })
-   data2 <- read.csv("data/newdatasetboruta.csv") 
-   output$downloadData3 <- downloadHandler(
-     filename = function() {
-       paste("data-", Sys.Date(), ".csv", sep="")
-     },
-     content = function(file) {
-       write.csv(data2,file)
-     }
-   )
-  
-  output$result6 =renderPrint({
-    req(input$file2)
-    data5 <- read.csv(input$file2$datapath, stringsAsFactors = TRUE)
-    write.csv(data5,'data/uploaded5.csv')
-    
-    b<-featurefxn3()
-    return (b)
-  })
-  data3 <- read.csv("data/newdatasetpso.csv") 
-  output$downloadData4 <- downloadHandler(
-    filename = function() {
-      paste("data-", Sys.Date(), ".csv", sep="")
-    },
-    content = function(file) {
-      write.csv(data3,file)
-    }
-  )
-  
   output$result7 =renderPrint({
     req(input$file2)
     data6 <- read.csv(input$file2$datapath, stringsAsFactors = TRUE)
@@ -427,47 +319,12 @@ server <-function(input,output){
     }
   )
   
-  output$result = renderPrint({
-    req(input$file3)
-    data1 <- read.csv(input$file3$datapath, stringsAsFactors = TRUE)
-    write.csv(data1,'data/uploaded.csv')
-    source("modelcode2.R")
-    sink("output$result")
-    return(perf)
-  })
-  
-  output$plotr =renderPlot({
-    req(input$file3)
-    data1 <- read.csv(input$file3$datapath, stringsAsFactors = TRUE)
-    write.csv(data1,'data/uploaded.csv')
-    source("modelcode2.R")
-    plot(perf,valid=T,type='roc') 
-    sink("output$plotr")
-  })
-  
-   output$resultrf = renderPrint({
-     req(input$file3)
-     data1 <- read.csv(input$file3$datapath, stringsAsFactors = TRUE)
-     write.csv(data1,'data/uploadedrf.csv')
-     source("modelcoderf.R")
-     sink("output$resultrf")
-     return(perf)
-   })
-   
-   output$plotrrf =renderPlot({
-     req(input$file3)
-     data1 <- read.csv(input$file3$datapath, stringsAsFactors = TRUE)
-     write.csv(data1,'data/uploadedrf.csv')
-     source("modelcoderf.R")
-     plot(perf,valid=T,type='roc') 
-     sink("output$plotrrf")
-   })
   
   output$result1 = renderPrint({
     req(input$file3)
     data2 <- read.csv(input$file3$datapath, stringsAsFactors = TRUE)
     write.csv(data2,'data/uploaded1.csv')
-    source("modelcodeSense.R")
+    source("bsensemodelcode.R")
     sink("output$result1")
     return(perf)
   })
@@ -475,7 +332,7 @@ server <-function(input,output){
     req(input$file3)
     data2 <- read.csv(input$file3$datapath, stringsAsFactors = TRUE)
     write.csv(data2,'data/uploaded1.csv')
-    source("modelcodeSense.R")
+    source("bsensemodelcode.R")
     plot(perf,valid=T,type='roc') 
     sink("output$plotr1")
   })
@@ -483,7 +340,7 @@ server <-function(input,output){
     req(input$file3)
     data3 <- read.csv(input$file3$datapath, stringsAsFactors = TRUE)
     write.csv(data3,'data/uploaded2.csv')
-    source("modelcodeNB.R")
+    source("BDNNmodelcode.R")
     sink("output$result2")
     return(best_deep_perf1)
   })
@@ -491,7 +348,7 @@ server <-function(input,output){
     req(input$file3)
     data3 <- read.csv(input$file3$datapath, stringsAsFactors = TRUE)
     write.csv(data3,'data/uploaded2.csv')
-    source("modelcodeNB.R")
+    source("BDNNmodelcode.R")
     plot(perf,valid=T,type='roc') 
     sink("output$plotr2")
   })
@@ -517,12 +374,12 @@ server <-function(input,output){
        data10 <- read.csv(input$file5$datapath, stringsAsFactors = TRUE)
        write.csv(data10,'data/uploaded9.csv')
        source("survive_plot1.R")
-      
+       
        plot(fit1, data = data3, pval = TRUE)
        sink("output$plotr4")
      })
-       
-  
+     
+ 
 }
 
 shinyApp(ui,server)
